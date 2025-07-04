@@ -31,7 +31,7 @@
     state: broadsword
   discipline: Arsenal
   tier: 2
-  cost: 8000
+  cost: 5000
   recipeUnlocks:
   - HalberdHarness
   - MediumMechDMR
@@ -41,15 +41,40 @@
   - Broadsword
 
 - type: technology
-  id: Halberd
-  name: research-technology-Sabre
+  id: Sabre
+  name: research-technology-sabre
   icon:
     sprite: _Mono/Objects/Specific/Mech/mechaS2.rsi
     state: broadsword
   discipline: Arsenal
   tier: 2
-  cost: 8000
+  cost: 5000
   recipeUnlocks:
   - SabreHarness
+  technologyPrerequisites:
+  - Broadsword
+
+- type: technology
+  id: Flail
+  name: research-technology-flail
+  icon:
+    sprite: _Mono/Objects/Specific/Mech/mechaS4.rsi
+    state: flail
+  discipline: Arsenal
+  tier: 2
+  cost: 12000
+  recipeUnlocks:
+  - FlailHarness
+  - FlailHead
+  - FlailLArm
+  - FlailLLeg
+  - FlailRArm
+  - FlailRLeg
+  - FlailCentralElectronics
+  - FlailPeripheralsElectronics
+  - FlailTargetingElectronics
+  - HeavyMechRPG
+  - HeavyMechCannon
+  - HeavyMechProjector
   technologyPrerequisites:
   - Broadsword

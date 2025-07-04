@@ -1,3 +1,4 @@
+#S2 Mechs
 - type: entity
   id: BaseBroadswordPart
   parent: BaseMechPart
@@ -271,3 +272,128 @@
     graph: Sabre
     node: start
     defaultTarget: broadsword
+
+#S4 Mechs
+- type: entity
+  id: BaseFlailPart
+  parent: BaseMechPart
+  abstract: true
+  components:
+  - type: Sprite
+    drawdepth: Items
+    noRot: false
+    sprite: _Mono/Objects/Specific/Mech/flail_construction.rsi
+
+- type: entity
+  id: BaseFlailPartItem
+  parent: BaseFlailPart
+  abstract: true
+  components:
+  - type: Item
+    size: Ginormous
+
+
+- type: entity
+  parent: BaseFlailPart
+  id: FlailHarness
+  name: flail harness
+  description: The core of the ASF-59 "Flail".
+  components:
+  - type: Appearance
+  - type: ItemMapper
+    mapLayers:
+      flail_head+o:
+        whitelist:
+          tags:
+          - FlailHead
+      flail_r_arm+o:
+        whitelist:
+          tags:
+          - FlailLArm
+      flail_l_arm+o:
+        whitelist:
+          tags:
+          - FlailRArm
+      flail_l_leg+o:
+        whitelist:
+          tags:
+          - FlailLLeg
+      flail_r_leg+o:
+        whitelist:
+          tags:
+          - FlailRLeg
+    sprite: _Mono/Objects/Specific/Mech/flail_construction.rsi
+  - type: ContainerContainer
+    containers:
+      mech-assembly-container: !type:Container
+  - type: MechAssembly
+    finishedPrototype: SabreChassis
+    requiredParts:
+      FlailHead: false
+      FlailLArm: false
+      FlailRArm: false
+      FlailLLeg: false
+      FlailRLeg: false
+  - type: Sprite
+    state: flail_harness+o
+    noRot: true
+
+- type: entity
+  parent: BaseFlailPartItem
+  id: FlailHead
+  name: flail head
+  description: The head of the flail. It belongs on the chassis of the mech.
+  components:
+  - type: Sprite
+    state: flail_head
+  - type: Tag
+    tags:
+    - FlailHead
+
+- type: entity
+  parent: BaseFlailPartItem
+  id: FlailRArm
+  name: flail right arm
+  description: The right arm of the flail. It belongs on the chassis of the mech.
+  components:
+  - type: Sprite
+    state: flail_l_arm
+  - type: Tag
+    tags:
+    - FlailRArm
+
+- type: entity
+  parent: BaseFlailPartItem
+  id: FlailLArm
+  name: flail left arm
+  description: The left arm of the flail. It belongs on the chassis of the mech.
+  components:
+  - type: Sprite
+    state: flail_r_arm
+  - type: Tag
+    tags:
+    - FlailLArm
+
+- type: entity
+  parent: BaseFlailPartItem
+  id: FlailLLeg
+  name: flail left leg
+  description: The left leg of a flail. It belongs on the chassis of the mech.
+  components:
+  - type: Sprite
+    state: flail_l_leg
+  - type: Tag
+    tags:
+    - FlailLLeg
+
+- type: entity
+  parent: BaseFlailPartItem
+  id: FlailRLeg
+  name: flail right leg
+  description: The right leg of a flail. It belongs on the chassis of the mech.
+  components:
+  - type: Sprite
+    state: flail_r_leg
+  - type: Tag
+    tags:
+    - FlailRLeg

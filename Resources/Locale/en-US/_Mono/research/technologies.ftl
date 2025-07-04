@@ -39,4 +39,5 @@ research-technology-rogue-access-breaker = Advanced Hacking Procedures
 # Space Mecha Technologies
 research-technology-broadsword = Armored Frame Production
 research-technology-halberd = Multirole Armored Frames
-research-technology-Sabre = Gravity Adapted AF
+research-technology-Sabre = Gravity Adapted Armored Frames
+research-technology-flail = Armored Strike Frames

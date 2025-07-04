@@ -203,16 +203,25 @@
   id: BroadswordTargetingControlModule
 
 - type: Tag
-  id: BroadswordHead
+  id: FlailHead
 
 - type: Tag
-  id: BroadswordLArm
+  id: FlailLArm
 
 - type: Tag
-  id: BroadswordLLeg
+  id: FlailLLeg
 
 - type: Tag
-  id: BroadswordRArm
+  id: FlailRArm
 
 - type: Tag
-  id: BroadswordRLeg
+  id: FlailRLeg
+
+- type: Tag
+  id: FlailCentralControlModule
+
+- type: Tag
+  id: FlailPeripheralsControlModule
+
+- type: Tag
+  id: FlailTargetingControlModule

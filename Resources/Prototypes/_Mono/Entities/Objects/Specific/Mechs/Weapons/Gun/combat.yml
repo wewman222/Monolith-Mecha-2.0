@@ -19,6 +19,8 @@
       - FullAuto
     soundGunshot:
       path: /Audio/_Mono/Weapons/Guns/Gunshots/slammer.ogg
+  - type: Battery
+    maxCharge: 30
   - type: ProjectileBatteryAmmoProvider
     proto: 20mmBulletArmorPiercing
     fireCost: 30
@@ -45,6 +47,8 @@
       - FullAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/minigun.ogg
+  - type: Battery
+    maxCharge: 100
   - type: ProjectileBatteryAmmoProvider
     proto: Bullet45_ACPFMJ
     fireCost: 10
@@ -70,6 +74,8 @@
       - FullAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+  - type: Battery
+    maxCharge: 50
   - type: ProjectileBatteryAmmoProvider
     proto: MechPelletShotgunSpread
     fireCost: 50
@@ -94,7 +100,9 @@
     availableModes:
       - FullAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+      path: /Audio/_Mono/Weapons/Guns/Gunshots/uaf_57mm.ogg
+  - type: Battery
+    maxCharge: 100
   - type: ProjectileBatteryAmmoProvider
     proto: ShipDravonProjectile
     fireCost: 100
@@ -112,13 +120,13 @@
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
     state: mecha_uac2
   - type: Gun
-    ProjectileSpeed: 150
+    ProjectileSpeed: 250
     fireRate: 1
-    selectedMode: FullAuto
+    selectedMode: SemiAuto
     availableModes:
       - SemiAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+      path: /Audio/Weapons/Guns/Gunshots/ship_perforator.ogg
   - type: ProjectileBatteryAmmoProvider
     proto: MechLightCoilgunProjectile
     fireCost: 200
@@ -138,14 +146,16 @@
   - type: Gun
     ProjectileSpeed: 10
     fireRate: 1
-    selectedMode: FullAuto
+    selectedMode: SemiAuto
     availableModes:
       - SemiAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+  - type: Battery
+    maxCharge: 500
   - type: ProjectileBatteryAmmoProvider
     proto: ShipMissileASM302
-    fireCost: 200
+    fireCost: 500
   - type: Appearance
   - type: AmmoCounter
 
@@ -162,16 +172,16 @@
     state: mecha_uac2
   - type: Gun
     fireRate: 0.1
-    selectedMode: FullAuto
+    selectedMode: SemiAuto
     availableModes:
       - SemiAuto
     soundGunshot:
       path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
   - type: Battery
-    maxCharge: 210
+    maxCharge: 750
   - type: ProjectileBatteryAmmoProvider
     proto: 280mmRocket
-    fireCost: 200
+    fireCost: 750
   - type: Appearance
   - type: AmmoCounter
 
@@ -225,9 +235,11 @@
     availableModes:
       - FullAuto
     soundGunshot:
-      path: /Audio/Weapons/Guns/Gunshots/lmg.ogg
+      path: /Audio/Weapons/Guns/Gunshots/laser_cannon2.ogg
+  - type: Battery
+    maxCharge: 80
   - type: ProjectileBatteryAmmoProvider
     proto: MechPlasmaProjectile
-    fireCost: 200
+    fireCost: 75
   - type: Appearance
   - type: AmmoCounter

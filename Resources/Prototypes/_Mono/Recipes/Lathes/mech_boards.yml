@@ -12,3 +12,18 @@
   parent: BaseGoldCircuitboardRecipe
   id: BroadswordTargetingElectronics
   result: BroadswordTargetingElectronics
+
+- type: latheRecipe
+  parent: BaseGoldCircuitboardRecipe
+  id: FlailCentralElectronics
+  result: FlailCentralElectronics
+
+- type: latheRecipe
+  parent: BaseGoldCircuitboardRecipe
+  id: FlailPeripheralsElectronics
+  result: FlailPeripheralsElectronics
+
+- type: latheRecipe
+  parent: BaseGoldCircuitboardRecipe
+  id: FlailTargetingElectronics
+  result: FlailTargetingElectronics

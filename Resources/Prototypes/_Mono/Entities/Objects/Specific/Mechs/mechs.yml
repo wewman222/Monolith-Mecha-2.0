@@ -123,7 +123,7 @@
   id: AFInterceptorM
   parent: [ BaseMech, LightMechMount, MediumMechMount, BaseRestrictedContraband ]
   name: AF-28-M "Halberd"
-  description: A modification of the Broadsword, the Halberd sacrifices
+  description: A modification of the Broadsword, the Halberd sacrifices armor and speed for heavier weapon mounts.
   components:
   - type: Fixtures
     fixtures: # Custom hitbox

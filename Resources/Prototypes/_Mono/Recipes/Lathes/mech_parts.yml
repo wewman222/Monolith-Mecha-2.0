@@ -59,3 +59,48 @@
   materials:
     Steel: 2500
     Glass: 2000
+
+- type: latheRecipe
+  id: FlailHarness
+  result: FlailHarness
+  completetime: 10
+  materials:
+    Steel: 2500
+    Glass: 2000
+
+- type: latheRecipe
+  id: FlailHead
+  result: FlailHead
+  completetime: 10
+  materials:
+    Steel: 1500
+    Glass: 250
+    Diamond: 100
+
+- type: latheRecipe
+  id: FlailLArm
+  result: FlailLArm
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: FlailLLeg
+  result: FlailLLeg
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: FlailRLeg
+  result: FlailRLeg
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: FlailRArm
+  result: FlailRArm
+  completetime: 10
+  materials:
+    Steel: 1100
