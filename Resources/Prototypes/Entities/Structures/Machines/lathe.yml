@@ -360,6 +360,10 @@
     - MechWeapons
     - RipleyUpgrade
     - WeaponMechCombatArsenal
+    # Mono - Space Mecha
+    - S2Mechs
+    - SpaceMechaWeapons
+    - S2MechBoards
   - type: MaterialStorage
     whitelist:
       tags:

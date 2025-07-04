@@ -1,0 +1,61 @@
+# S2 Mechs
+- type: latheRecipe
+  id: BroadswordHarness
+  result: BroadswordHarness
+  completetime: 10
+  materials:
+    Steel: 2500
+    Glass: 2000
+
+- type: latheRecipe
+  id: BroadswordHead
+  result: BroadswordHead
+  completetime: 10
+  materials:
+    Steel: 1500
+    Glass: 250
+    Diamond: 100
+
+- type: latheRecipe
+  id: BroadswordLArm
+  result: BroadswordLArm
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: BroadswordLLeg
+  result: BroadswordLLeg
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: BroadswordRLeg
+  result: BroadswordRLeg
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: BroadswordRArm
+  result: BroadswordRArm
+  completetime: 10
+  materials:
+    Steel: 1100
+
+- type: latheRecipe
+  id: HalberdHarness
+  result: HalberdHarness
+  completetime: 10
+  materials:
+    Steel: 2500
+    Glass: 2000
+
+- type: latheRecipe
+  id: SabreHarness
+  result: SabreHarness
+  completetime: 10
+  materials:
+    Steel: 2500
+    Glass: 2000

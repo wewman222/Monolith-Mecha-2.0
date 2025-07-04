@@ -1,0 +1,55 @@
+- type: technology
+  id: Broadsword
+  name: research-technology-broadsword
+  icon:
+    sprite: _Mono/Objects/Specific/Mech/mechaS2.rsi
+    state: broadsword
+  discipline: Arsenal
+  tier: 2
+  cost: 8000
+  recipeUnlocks:
+  - BroadswordHarness
+  - BroadswordHead
+  - BroadswordLArm
+  - BroadswordLLeg
+  - BroadswordRArm
+  - BroadswordRLeg
+  - BroadswordCentralElectronics
+  - BroadswordPeripheralsElectronics
+  - BroadswordTargetingElectronics
+  - LightMechaAutocannon
+  - LightMechaSMG
+  - LightMechaShotgun
+  technologyPrerequisites:
+  - Gygax
+
+- type: technology
+  id: Halberd
+  name: research-technology-halberd
+  icon:
+    sprite: _Mono/Objects/Specific/Mech/mechaS2.rsi
+    state: broadsword
+  discipline: Arsenal
+  tier: 2
+  cost: 8000
+  recipeUnlocks:
+  - HalberdHarness
+  - MediumMechDMR
+  - MediumMechCoilgun
+  - MediumMechTOW
+  technologyPrerequisites:
+  - Broadsword
+
+- type: technology
+  id: Halberd
+  name: research-technology-halberd
+  icon:
+    sprite: _Mono/Objects/Specific/Mech/mechaS2.rsi
+    state: broadsword
+  discipline: Arsenal
+  tier: 2
+  cost: 8000
+  recipeUnlocks:
+  - SabreHarness
+  technologyPrerequisites:
+  - Broadsword

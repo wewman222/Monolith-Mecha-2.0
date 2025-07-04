@@ -141,3 +141,51 @@
 
 - type: Tag
   id: ReptilianEmotes
+
+#Mech Weaponry Tags
+- type: Tag
+  id: LightMechMount
+
+- type: Tag
+  id: MediumMechMount
+
+- type: Tag
+  id: HeavyMechMount
+
+#Mech Tags
+
+- type: Tag
+  id: Broadsword
+
+- type: Tag
+  id: Halberd
+
+- type: Tag
+  id: Sabre
+
+- type: Tag
+  id: Flail
+
+- type: Tag
+  id: BroadswordCentralControlModule
+
+- type: Tag
+  id: BroadswordPeripheralsControlModule
+
+- type: Tag
+  id: BroadswordTargetingControlModule
+
+- type: Tag
+  id: BroadswordHead
+
+- type: Tag
+  id: BroadswordLArm
+
+- type: Tag
+  id: BroadswordLLeg
+
+- type: Tag
+  id: BroadswordRArm
+
+- type: Tag
+  id: BroadswordRLeg
