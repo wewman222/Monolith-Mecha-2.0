@@ -35,3 +35,8 @@ research-technology-rogue-hristov = Heavy Ballistics
 research-technology-rogue-prowler-voucher = Stealthcraft Technologies
 research-technology-rogue-energy-weapon = Advanced Plasma Weaponization
 research-technology-rogue-access-breaker = Advanced Hacking Procedures
+
+# Space Mecha Technologies
+research-technology-broadsword = Armored Frame Production
+research-technology-halberd = Multirole Armored Frames
+research-technology-Sabre = Gravity Adapted AF

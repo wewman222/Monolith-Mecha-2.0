@@ -42,7 +42,7 @@
 
 - type: technology
   id: Halberd
-  name: research-technology-halberd
+  name: research-technology-Sabre
   icon:
     sprite: _Mono/Objects/Specific/Mech/mechaS2.rsi
     state: broadsword
