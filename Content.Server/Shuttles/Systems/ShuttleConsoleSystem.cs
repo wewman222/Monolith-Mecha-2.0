@@ -1,3 +1,26 @@
+// SPDX-FileCopyrightText: 2022 Myctai
+// SPDX-FileCopyrightText: 2022 metalgearsloth
+// SPDX-FileCopyrightText: 2023 Artjom
+// SPDX-FileCopyrightText: 2023 Kevin Zheng
+// SPDX-FileCopyrightText: 2023 Morb
+// SPDX-FileCopyrightText: 2023 TemporalOroboros
+// SPDX-FileCopyrightText: 2024 Dvir
+// SPDX-FileCopyrightText: 2024 Ed
+// SPDX-FileCopyrightText: 2024 Leon Friedrich
+// SPDX-FileCopyrightText: 2024 Mervill
+// SPDX-FileCopyrightText: 2024 Nemanja
+// SPDX-FileCopyrightText: 2024 Pieter-Jan Briers
+// SPDX-FileCopyrightText: 2024 Tayrtahn
+// SPDX-FileCopyrightText: 2024 Whatstone
+// SPDX-FileCopyrightText: 2024 neuPanda
+// SPDX-FileCopyrightText: 2025 Ark
+// SPDX-FileCopyrightText: 2025 ark1368
+// SPDX-FileCopyrightText: 2025 gus
+// SPDX-FileCopyrightText: 2025 sleepyyapril
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
+using Content.Server._Mono.Ships.Systems;
 using Content.Server._Mono.Shuttles.Components;
 using Content.Server.Power.EntitySystems;
 using Content.Server.Shuttles.Components;
@@ -26,6 +49,8 @@ using Content.Shared.Access.Systems; // Frontier
 using Content.Shared.Construction.Components; // Frontier
 using Content.Server.Radio.EntitySystems;
 using Content.Server.Station.Components;
+using Content.Shared._Mono.FireControl;
+using Content.Shared._Mono.Ships.Components;
 using Content.Shared.Verbs;
 
 namespace Content.Server.Shuttles.Systems;
@@ -46,6 +71,10 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
     [Dependency] private readonly AccessReaderSystem _access = default!;
     [Dependency] private readonly RadioSystem _radioSystem = default!;
     [Dependency] private readonly StationJobsSystem _stationJobs = default!;
+    [Dependency] private readonly ILogManager _log = default!;
+    [Dependency] private readonly CrewedShuttleSystem _crewedShuttle = default!;
+
+    private ISawmill _sawmill = default!;
 
     private EntityQuery<MetaDataComponent> _metaQuery;
     private EntityQuery<TransformComponent> _xformQuery;
@@ -59,14 +88,15 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         _metaQuery = GetEntityQuery<MetaDataComponent>();
         _xformQuery = GetEntityQuery<TransformComponent>();
 
-        InitializeDeviceLinking(); // Initialize device linking functionality
+        _sawmill = _log.GetSawmill("shuttle-console");
+
+        InitializeDeviceLinking();
 
         SubscribeLocalEvent<ShuttleConsoleComponent, ComponentStartup>(OnConsoleStartup);
         SubscribeLocalEvent<ShuttleConsoleComponent, ComponentShutdown>(OnConsoleShutdown);
         SubscribeLocalEvent<ShuttleConsoleComponent, PowerChangedEvent>(OnConsolePowerChange);
         SubscribeLocalEvent<ShuttleConsoleComponent, AnchorStateChangedEvent>(OnConsoleAnchorChange);
         SubscribeLocalEvent<ShuttleConsoleComponent, ActivatableUIOpenAttemptEvent>(OnConsoleUIOpenAttempt);
-        SubscribeLocalEvent<ShuttleConsoleComponent, GetVerbsEvent<Verb>>(AddPanicButtonVerb);
         Subs.BuiEvents<ShuttleConsoleComponent>(ShuttleConsoleUiKey.Key, subs =>
         {
             subs.Event<ShuttleConsoleFTLBeaconMessage>(OnBeaconFTLMessage);
@@ -162,9 +192,23 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         RemovePilot(args.Actor);
     }
 
-    private void OnConsoleUIOpenAttempt(EntityUid uid, ShuttleConsoleComponent component,
+    private void OnConsoleUIOpenAttempt(
+        EntityUid uid,
+        ShuttleConsoleComponent component,
         ActivatableUIOpenAttemptEvent args)
     {
+        var shuttle = _transform.GetParentUid(uid);
+        var uiOpen = _crewedShuttle.AnyGunneryConsoleActiveByPlayer(shuttle, args.User);
+        var hasComp = HasComp<CrewedShuttleComponent>(shuttle);
+
+        // Crewed shuttles should not allow people to have both gunnery and shuttle consoles open.
+        if (uiOpen && hasComp)
+        {
+            args.Cancel();
+            _popup.PopupClient(Loc.GetString("shuttle-console-crewed"), args.User);
+            return;
+        }
+
         if (!TryPilot(args.User, uid))
             args.Cancel();
     }
@@ -200,11 +244,15 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
         if (!_access.IsAllowed(user, uid)) // Frontier: check access
             return false; // Frontier
 
-        // Check if console is locked
-        if (TryComp<ShuttleConsoleLockComponent>(uid, out var lockComp) && lockComp.Locked)
+        // Check if console is locked using effective lock state (considers grid-level locks)
+        if (TryComp<ShuttleConsoleLockComponent>(uid, out var lockComp))
         {
-            // _popup.PopupEntity(Loc.GetString("shuttle-console-locked"), uid, user); // Mono
-            return false;
+            var lockSystem = EntityManager.EntitySysManager.GetEntitySystem<SharedShuttleConsoleLockSystem>();
+            if (lockSystem.GetEffectiveLockState(uid, lockComp))
+            {
+                // _popup.PopupEntity(Loc.GetString("shuttle-console-locked"), uid, user); // Mono
+                return false;
+            }
         }
 
         var pilotComponent = EnsureComp<PilotComponent>(user);
@@ -577,70 +625,6 @@ public sealed partial class ShuttleConsoleSystem : SharedShuttleConsoleSystem
             stateDuration,
             beacons ?? new List<ShuttleBeaconObject>(),
             exclusions ?? new List<ShuttleExclusionObject>());
-    }
-
-    /// <summary>
-    /// Adds the panic button verb to the shuttle console
-    /// </summary>
-    private void AddPanicButtonVerb(EntityUid uid, ShuttleConsoleComponent component, GetVerbsEvent<Verb> args)
-    {
-        if (!args.CanAccess || !args.CanInteract || !this.IsPowered(uid, EntityManager))
-            return;
-
-        // Don't show the panic button if the console is locked (either emergency locked or normally locked)
-        if (TryComp<ShuttleConsoleLockComponent>(uid, out var lockComp) && (lockComp.EmergencyLocked || lockComp.Locked))
-            return;
-
-        // Create the panic button verb
-        Verb verb = new()
-        {
-            Act = () => SendPanicSignal(uid, args.User),
-            Text = Loc.GetString("shuttle-console-panic-button"),
-            Priority = 1,
-        };
-
-        args.Verbs.Add(verb);
-    }
-
-    /// <summary>
-    /// Sends an emergency signal to the TSFMC radio channel with the shuttle's name and location
-    /// </summary>
-    private void SendPanicSignal(EntityUid uid, EntityUid user, ShuttleConsoleComponent? component = null, MetaDataComponent? gridMeta = null)
-    {
-        if (!Resolve(uid, ref component))
-            return;
-
-        // Get the grid entity
-        if (Transform(uid).GridUid is not {} gridUid)
-        {
-            _popup.PopupEntity(Loc.GetString("shuttle-console-panic-no-grid"), uid, user);
-            return;
-        }
-
-        // Get grid name
-        if (!Resolve(gridUid, ref gridMeta))
-        {
-            _popup.PopupEntity(Loc.GetString("shuttle-console-panic-failed"), uid, user);
-            return;
-        }
-
-        var gridName = gridMeta.EntityName;
-        var mapCoordinates = _transform.ToMapCoordinates(Transform(uid).Coordinates);
-
-        // Construct emergency message
-        var message = Loc.GetString("shuttle-console-panic-message",
-            ("gridName", gridName),
-            ("coordinates", $"{mapCoordinates.Position.X:0.0}, {mapCoordinates.Position.Y:0.0}"));
-
-        // Send to TSFMC radio channel
-        _radioSystem.SendRadioMessage(user, message, "Nfsd", uid); // god bro why.
-
-        // Lock the console in emergency mode
-        var lockSystem = EntityManager.EntitySysManager.GetEntitySystem<ShuttleConsoleLockSystem>();
-        lockSystem.SetEmergencyLock(uid, true);
-
-        // Show confirmation popup
-        _popup.PopupEntity(Loc.GetString("shuttle-console-panic-sent"), uid, user);
     }
 
     /// <summary>

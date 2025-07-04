@@ -1,5 +1,5 @@
+# SPDX-FileCopyrightText: 2025 Blu
 # SPDX-FileCopyrightText: 2025 BlueHNT
-# SPDX-FileCopyrightText: 2025 monolith8319
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
@@ -53,8 +53,10 @@
         map: ["enum.SolutionContainerLayers.Fill"]
         visible: false
   - type: Item
-    size: Normal
     sprite: _Mono/Objects/Misc/papercup.rsi
+    size: Small
+    shape:
+    - 0,0,0,1
   - type: SolutionContainerManager
     solutions:
       drink:
@@ -70,3 +72,22 @@
       Paper: 50
   - type: StaticPrice
     price: 1
+
+- type: entity
+  parent: DrinkGlassBase
+  id: DrinkTeapotEmpty
+  name: teapot
+  description: An elegant teapot. It simply oozes class.
+  suffix: Empty
+  components:
+  - type: Sprite
+    sprite: Objects/Consumable/Drinks/teapot.rsi
+
+- type: entity
+  parent: DrinkGlass
+  id: DrinkTeaGlassEmpty
+  suffix: Empty 
+  components:
+  - type: Icon
+    sprite: Objects/Consumable/Drinks/teaglass.rsi
+    state: icon

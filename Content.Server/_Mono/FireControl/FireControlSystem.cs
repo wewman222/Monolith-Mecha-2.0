@@ -1,3 +1,12 @@
+// SPDX-FileCopyrightText: 2025 Ark
+// SPDX-FileCopyrightText: 2025 RikuTheKiller
+// SPDX-FileCopyrightText: 2025 ScyronX
+// SPDX-FileCopyrightText: 2025 ark1368
+// SPDX-FileCopyrightText: 2025 sleepyyapril
+// SPDX-FileCopyrightText: 2025 starch
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 // Copyright Rane (elijahrane@gmail.com) 2025
 // All rights reserved. Relicensed under AGPL with permission
 
@@ -11,12 +20,14 @@ using Robust.Shared.Physics.Systems;
 using System.Linq;
 using Content.Shared.Physics;
 using System.Numerics;
+using Content.Server._Mono.SpaceArtillery;
 using Content.Server.Power.EntitySystems;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Timing;
 using Content.Shared.Interaction;
 using Content.Shared._Mono.ShipGuns;
 using Content.Shared.Examine;
+using Content.Shared.UserInterface;
 
 namespace Content.Server._Mono.FireControl;
 
@@ -197,7 +208,7 @@ public sealed partial class FireControlSystem : EntitySystem
 
         while (query.MoveNext(out var controllable, out var controlComp))
         {
-            if (_xform.GetGrid(controllable) == grid)
+            if (_xform.GetGrid(controllable) == grid && EntityManager.GetComponent<TransformComponent>(controllable).Anchored)
                 TryRegister(controllable, controlComp);
         }
 
@@ -375,10 +386,11 @@ public sealed partial class FireControlSystem : EntitySystem
         // Check if the weapon's grid is in FTL
         var grid = component.ConnectedGrid;
         if (grid != null && TryComp<FTLComponent>((EntityUid)grid, out var ftlComp))
-        {
-            // Cannot fire weapons during FTL travel
             return;
-        }
+
+        // Check if the weapon's grid is pacified
+        if (grid != null && TryComp<SpaceArtilleryDisabledGridComponent>((EntityUid)grid, out var pacifiedComp))
+            return;
 
         var targetCoords = GetCoordinates(coordinates);
 

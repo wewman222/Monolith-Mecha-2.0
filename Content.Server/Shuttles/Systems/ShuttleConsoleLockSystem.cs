@@ -1,3 +1,10 @@
+// SPDX-FileCopyrightText: 2025 Ark
+// SPDX-FileCopyrightText: 2025 Redrover1760
+// SPDX-FileCopyrightText: 2025 ark1368
+// SPDX-FileCopyrightText: 2025 gus
+//
+// SPDX-License-Identifier: AGPL-3.0-or-later
+
 using System.Linq;
 using Content.Shared.Shuttles.Systems;
 using Content.Shared.Shuttles.Components;
@@ -11,9 +18,12 @@ using Content.Shared.Verbs;
 using Robust.Shared.Utility;
 using Content.Server._NF.Shipyard.Components;
 using Content.Shared._Mono.Company;
+using Content.Shared._Mono.Shipyard;
+using Content.Shared.Silicons.Borgs.Components;
 using Content.Shared.Interaction;
 using Content.Shared.PDA;
 using Robust.Shared.Audio;
+using Robust.Shared.Map.Components;
 
 namespace Content.Server.Shuttles.Systems;
 
@@ -31,27 +41,65 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
     public override void Initialize()
     {
         base.Initialize();
-        SubscribeLocalEvent<ShuttleConsoleLockComponent, ComponentInit>(OnShuttleConsoleLockInit); // Subscribe to component init to handle default lock state
-        SubscribeLocalEvent<ShuttleConsoleLockComponent, GetVerbsEvent<AlternativeVerb>>(AddUnlockVerb); // Add context menu verb
-        SubscribeLocalEvent<ShuttleConsoleLockComponent, ActivatableUIOpenAttemptEvent>(OnUIOpenAttempt); // Keep the UI open attempt block to prevent piloting locked consoles
-
-        // Subscribe to AfterInteract events for PDA, ID card, and voucher tap/swipe functionality
+        SubscribeLocalEvent<ShuttleConsoleLockComponent, ComponentInit>(OnShuttleConsoleLockInit);
+        SubscribeLocalEvent<ShuttleConsoleLockComponent, GetVerbsEvent<AlternativeVerb>>(AddUnlockVerb);
+        SubscribeLocalEvent<ShuttleConsoleLockComponent, ActivatableUIOpenAttemptEvent>(OnUIOpenAttempt);
         SubscribeLocalEvent<PdaComponent, AfterInteractEvent>(OnPdaAfterInteract);
         SubscribeLocalEvent<ShuttleConsoleLockComponent, AfterInteractUsingEvent>(OnAfterInteractUsing);
+        SubscribeLocalEvent<ShuttleDeedComponent, ComponentInit>(OnShuttleDeedInit);
     }
 
     /// <summary>
-    /// Initializes the lock component, ensuring consoles with no ShuttleId are unlocked by default
+    /// Initializes the lock component, ensuring consoles respect grid lock state when available
     /// </summary>
     private void OnShuttleConsoleLockInit(EntityUid uid, ShuttleConsoleLockComponent component, ComponentInit args)
     {
-        // If there's no shuttle ID, the console should be unlocked
+        // Get the grid this console is on
+        var transform = Transform(uid);
+        if (transform.GridUid == null)
+        {
+            // Not on a grid, use individual console logic
+            if (string.IsNullOrEmpty(component.ShuttleId))
+                component.Locked = false;
+            return;
+        }
+
+        var gridUid = transform.GridUid.Value;
+
+        // If the grid has a deed and grid lock component, the console should respect the grid state
+        if (TryComp<ShuttleDeedComponent>(gridUid, out var deed) &&
+            TryComp<ShipGridLockComponent>(gridUid, out var gridLock))
+        {
+            // Console is on a ship grid - ensure it has the correct shuttle ID
+            if (string.IsNullOrEmpty(component.ShuttleId) && deed.ShuttleUid != null)
+            {
+                component.ShuttleId = deed.ShuttleUid.Value.ToString();
+                Log.Debug("Assigned shuttle ID {0} to console {1} on ship grid {2}", component.ShuttleId, uid, gridUid);
+            }
+
+            // Grid lock state takes precedence over individual console lock state
+            return;
+        }
+
+        // Not on a ship grid, use individual console logic
         if (string.IsNullOrEmpty(component.ShuttleId))
             component.Locked = false;
     }
 
     /// <summary>
-    /// Adds a verb to unlock the console if the player has an ID card or voucher in hand
+    /// Handles when a ShuttleDeedComponent is added to ensure grid lock component exists
+    /// </summary>
+    private void OnShuttleDeedInit(EntityUid uid, ShuttleDeedComponent component, ComponentInit args)
+    {
+        // Only create grid lock component for grids (not ID cards)
+        if (!HasComp<MapGridComponent>(uid))
+            return;
+
+        EnsureGridLockComponent(uid, component.ShuttleUid?.ToString());
+    }
+
+    /// <summary>
+    /// Adds verbs for console interaction (unlock/lock, guest access, reset guest access)
     /// </summary>
     private void AddUnlockVerb(EntityUid uid,
         ShuttleConsoleLockComponent component,
@@ -63,23 +111,79 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
         // Check if player has an ID card or voucher in hand
         var idCards = FindAccessibleIdCards(args.User);
         var vouchers = FindAccessibleVouchers(args.User);
+        var isCyborg = TryComp<BorgChassisComponent>(args.User, out _);
 
-        if (idCards.Count == 0 && vouchers.Count == 0)
-            return;
+        // Show unlock/lock verb only for users with ID cards or vouchers
+        var hasIdOrVoucher = idCards.Count > 0 || vouchers.Count > 0;
 
-        AlternativeVerb verb = new()
+        // Get the effective lock state for use throughout this method
+        var effectiveLocked = GetEffectiveLockState(uid, component);
+
+        if (hasIdOrVoucher)
         {
-            Act = () => TryToggleLock(uid, args.User, component),
-            Text = component.Locked
-                ? Loc.GetString("shuttle-console-verb-unlock")
-                : Loc.GetString("shuttle-console-verb-lock"),
-            Icon = component.Locked
-                ? new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/unlock.svg.192dpi.png"))
-                : new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/lock.svg.192dpi.png")),
-            Priority = 10,
-        };
+            AlternativeVerb verb = new()
+            {
+                Act = () => TryToggleLock(uid, args.User, component),
+                Text = effectiveLocked
+                    ? Loc.GetString("shuttle-console-verb-unlock")
+                    : Loc.GetString("shuttle-console-verb-lock"),
+                Icon = effectiveLocked
+                    ? new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/unlock.svg.192dpi.png"))
+                    : new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/lock.svg.192dpi.png")),
+                Priority = 10,
+            };
 
-        args.Verbs.Add(verb);
+            args.Verbs.Add(verb);
+        }
+
+        // Add reset guest access verb for deed holders when console is unlocked
+        if (!effectiveLocked && hasIdOrVoucher && HasDeedAccess(uid, args.User, component))
+        {
+            AlternativeVerb resetVerb = new()
+            {
+                Act = () => TryResetGuestAccess(uid, args.User, component),
+                Text = Loc.GetString("shuttle-console-verb-reset-guest-access"),
+                Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/refresh.svg.192dpi.png")),
+                Priority = 5,
+            };
+
+            args.Verbs.Add(resetVerb);
+        }
+
+        // Add guest access verb for users without deed access when console is unlocked
+        // This includes cyborgs (who don't have ID cards) and users with ID cards that don't have the correct deed
+        if (!effectiveLocked && (isCyborg || (hasIdOrVoucher && !HasDeedAccess(uid, args.User, component))))
+        {
+            AlternativeVerb guestVerb = new()
+            {
+                Act = () => TryGrantGuestAccess(uid, args.User, component),
+                Text = Loc.GetString("shuttle-console-verb-guest-access"),
+                Icon = new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/group.svg.192dpi.png")),
+                Priority = 10,
+            };
+
+            args.Verbs.Add(guestVerb);
+        }
+
+        // Add ship access toggle verbs for deed holders when console is unlocked
+        if (!effectiveLocked && hasIdOrVoucher && HasDeedAccess(uid, args.User, component))
+        {
+            var shipAccessEnabled = IsShipAccessEnabled(uid);
+
+            AlternativeVerb shipAccessVerb = new()
+            {
+                Act = () => TryToggleShipAccess(uid, args.User, component, !shipAccessEnabled),
+                Text = shipAccessEnabled
+                    ? Loc.GetString("shuttle-console-verb-unlock-ship")
+                    : Loc.GetString("shuttle-console-verb-lock-ship"),
+                Icon = shipAccessEnabled
+                    ? new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/unlock.svg.192dpi.png"))
+                    : new SpriteSpecifier.Texture(new ResPath("/Textures/Interface/VerbIcons/lock.svg.192dpi.png")),
+                Priority = 8,
+            };
+
+            args.Verbs.Add(shipAccessVerb);
+        }
     }
 
     /// <summary>
@@ -125,20 +229,18 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
         args.Handled = true;
     }
 
+
+
     /// <summary>
     /// Tries to toggle the lock state of the console using an ID card or voucher from the player
     /// </summary>
     private void TryToggleLock(EntityUid uid, EntityUid user, ShuttleConsoleLockComponent component)
     {
+        var effectiveLocked = GetEffectiveLockState(uid, component);
+
         // If locked, try to unlock
-        if (component.Locked)
+        if (effectiveLocked)
         {
-            // Handle emergency lock case first
-            if (component.EmergencyLocked)
-                Popup.PopupEntity(Loc.GetString("shuttle-console-emergency-locked"),
-                    uid,
-                    user); // For emergency mode, just show the emergency message and don't try to unlock with deeds
-            //return;
 
             // Normal unlock procedure for non-emergency locks
             // Try each ID card the user has
@@ -153,7 +255,7 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
             if (!unlocked)
                 Popup.PopupEntity(Loc.GetString("shuttle-console-wrong-deed"), uid, user);
         }
-        // If unlocked, try to lock it again (only works if it's your ship)
+        // If unlocked, try to lock it again (only works if it's your ship) or grant guest access
         else
         {
             // Don't allow locking if there's no shuttle ID
@@ -171,8 +273,11 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
             if (!validLock && FindAccessibleVouchers(user).Any(voucher => TryLockWithVoucher(uid, voucher, component)))
                 validLock = true;
 
+            // If user doesn't have deed access but console is unlocked, grant guest access
             if (!validLock)
-                Popup.PopupEntity(Loc.GetString("shuttle-console-cannot-lock"), uid, user);
+            {
+                TryGrantGuestAccess(uid, user, component);
+            }
         }
     }
 
@@ -188,11 +293,22 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
             return false;
 
         // If the console is already locked, do nothing
-        if (lockComp.Locked)
+        if (GetEffectiveLockState(console, lockComp))
             return false;
 
+        // Get grid information for grid-based locking
+        var transform = Transform(console);
+        var gridUid = transform.GridUid;
+        ShipGridLockComponent? gridLock = null;
+
+        if (gridUid != null && TryComp<ShipGridLockComponent>(gridUid.Value, out gridLock))
+        {
+            // Use grid lock state for ships with deeds
+        }
+
         // Can't lock a console without a shuttle ID
-        if (string.IsNullOrEmpty(lockComp.ShuttleId))
+        var shuttleId = gridLock?.ShuttleId ?? lockComp.ShuttleId;
+        if (string.IsNullOrEmpty(shuttleId))
             return false;
 
         // Only allow locking if this ID card has a matching deed
@@ -205,7 +321,7 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
             // Check if this is for the same shuttle
             if ((entity != idCard && deed.DeedHolder != idCard)
                 || deed.ShuttleUid == null
-                || deed.ShuttleUid.Value.ToString() != lockComp.ShuttleId)
+                || deed.ShuttleUid.Value.ToString() != shuttleId)
                 continue;
 
             hasMatchingDeed = true;
@@ -216,7 +332,17 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
             return false;
 
         // Success! Lock the console
-        lockComp.Locked = true;
+        if (gridLock != null)
+        {
+            // Lock at grid level
+            SetGridLockState(gridUid!.Value, true, shuttleId);
+        }
+        else
+        {
+            // Lock individual console
+            lockComp.Locked = true;
+        }
+
         _audio.PlayPvs(idComp.SwipeSound, console);
         Popup.PopupEntity(Loc.GetString("shuttle-console-locked-success"), console);
 
@@ -355,7 +481,7 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
         ShuttleConsoleLockComponent component,
         ActivatableUIOpenAttemptEvent args)
     {
-        if (component.Locked)
+        if (GetEffectiveLockState(uid, component))
         {
             Popup.PopupEntity(Loc.GetString("shuttle-console-locked"), uid, args.User);
             args.Cancel();
@@ -420,42 +546,33 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
             return false;
 
         // If the console is already unlocked, do nothing
-        if (!lockComp.Locked)
+        if (!GetEffectiveLockState(console, lockComp))
             return false;
 
-        // Special handling for emergency locks - requires TSF company access
-        if (lockComp.EmergencyLocked)
+        // Get grid information for grid-based locking
+        var transform = Transform(console);
+        var gridUid = transform.GridUid;
+        ShipGridLockComponent? gridLock = null;
+
+        if (gridUid != null && TryComp<ShipGridLockComponent>(gridUid.Value, out gridLock))
         {
-            // Check if the ID card or user has TSF company access
-            var hasTsfAccess = false;
-
-            // Check for access tags on the ID card
-            if (TryComp<AccessComponent>(idCard, out var access))
-                hasTsfAccess = access.Tags.Contains("Nfsd") || access.Tags.Contains("Security"); // Check if ID has TSF or Security access
-
-            // Check for TSF company membership directly on the user entity
-            if (!hasTsfAccess && user != null && TryComp<CompanyComponent>(user, out var userCompany))
-                hasTsfAccess = userCompany.CompanyName is "TSF" or "TSFHighCommand";
-
-            if (!hasTsfAccess)
-            {
-                _audio.PlayPvs(idComp.ErrorSound, console);
-                Popup.PopupEntity(Loc.GetString("shuttle-console-emergency-locked"), console);
-                return false;
-            }
-
-            // Success! Clear the emergency lock state
-            lockComp.EmergencyLocked = false;
-            lockComp.Locked = false;
-            _audio.PlayPvs(idComp.SwipeSound, console);
-            Popup.PopupEntity(Loc.GetString("shuttle-console-emergency-unlocked"), console);
-            return true;
+            // Use grid lock state for ships with deeds
         }
 
+
+
         // If there's no shuttle ID, there's nothing to unlock against
-        if (string.IsNullOrEmpty(lockComp.ShuttleId))
+        var shuttleId = gridLock?.ShuttleId ?? lockComp.ShuttleId;
+        if (string.IsNullOrEmpty(shuttleId))
         {
-            lockComp.Locked = false;
+            if (gridLock != null)
+            {
+                SetGridLockState(gridUid!.Value, false);
+            }
+            else
+            {
+                lockComp.Locked = false;
+            }
             return true;
         }
 
@@ -500,11 +617,11 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
         {
             var deedShuttleId = deed.ShuttleUid?.ToString();
 
-            Log.Debug("Checking deed shuttle ID {0} against lock shuttle ID {1}", deedShuttleId, lockComp.ShuttleId);
+            Log.Debug("Checking deed shuttle ID {0} against lock shuttle ID {1}", deedShuttleId, shuttleId);
 
             if (deed.ShuttleUid == null ||
-                lockComp.ShuttleId == null ||
-                deedShuttleId != lockComp.ShuttleId)
+                shuttleId == null ||
+                deedShuttleId != shuttleId)
                 continue;
 
             deedFound = true;
@@ -521,7 +638,18 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
 
         // Success! Unlock the console
         Log.Debug("Successfully unlocked shuttle console {0}", console);
-        lockComp.Locked = false;
+
+        if (gridLock != null)
+        {
+            // Unlock at grid level
+            SetGridLockState(gridUid!.Value, false);
+        }
+        else
+        {
+            // Unlock individual console
+            lockComp.Locked = false;
+        }
+
         _audio.PlayPvs(idComp.SwipeSound, console);
         Popup.PopupEntity(Loc.GetString("shuttle-console-unlocked"), console);
         return true;
@@ -553,66 +681,271 @@ public sealed class ShuttleConsoleLockSystem : SharedShuttleConsoleLockSystem
     }
 
     /// <summary>
-    /// Sets a console into emergency locked mode
+    /// Grants guest access to a ship when someone without deed access swipes their ID on an unlocked shuttle console.
     /// </summary>
-    public void SetEmergencyLock(EntityUid console, bool enabled)
+    public void TryGrantGuestAccess(EntityUid console, EntityUid user, ShuttleConsoleLockComponent lockComp)
     {
-        var lockComp = EnsureComp<ShuttleConsoleLockComponent>(console);
+        // Log.Debug("TryGrantGuestAccess: User {0} attempting to get guest access via console {1}", user, console);
 
-        // Update existing component
-        lockComp.Locked = enabled || !string.IsNullOrEmpty(lockComp.ShuttleId);
-        lockComp.EmergencyLocked = enabled;
-
-        // Handle IFF visibility
-        if (Transform(console).GridUid is not { } iffVisibilityGridUid)
-            return;
-
-        HandleIff(enabled, iffVisibilityGridUid, lockComp);
-
-        Dirty(console, lockComp);
-
-        // Remove any pilots when locking the console
-        if (!lockComp.Locked || !TryComp<ShuttleConsoleComponent>(console, out var shuttleComp))
-            return;
-
-        // Clone the list to avoid modification during enumeration
-        var pilots = shuttleComp.SubscribedPilots.ToList();
-        foreach (var pilot in pilots)
-            _consoleSystem.RemovePilot(pilot);
-    }
-
-    private void HandleIff(bool enabled, EntityUid iffVisibilityGridUid, ShuttleConsoleLockComponent lockComp)
-    {
-        if (enabled)
+        // Get the grid the console is on
+        var consoleTransform = Transform(console);
+        if (consoleTransform.GridUid == null)
         {
-            // Save current IFF flags and make visible
-            if (TryComp<IFFComponent>(iffVisibilityGridUid, out var iff))
-            {
-                lockComp.OriginalIFFFlags = iff.Flags;
-
-                // Remove hiding flags
-                _shuttleSystem.RemoveIFFFlag(iffVisibilityGridUid, IFFFlags.Hide | IFFFlags.HideLabel);
-            }
-            else
-            {
-                // If no IFF component exists, add one that's visible
-                var iffComp = EnsureComp<IFFComponent>(iffVisibilityGridUid);
-                lockComp.OriginalIFFFlags = iffComp.Flags;
-            }
-
+            // Log.Debug("TryGrantGuestAccess: Console {0} not on a grid", console);
             return;
         }
 
-        // Restore original flags
-        if (!TryComp<IFFComponent>(iffVisibilityGridUid, out _))
-            return;
-        // Clear all flags first
-        _shuttleSystem.RemoveIFFFlag(iffVisibilityGridUid, IFFFlags.Hide | IFFFlags.HideLabel);
-        // Then restore the original flags that were hiding
-        if ((lockComp.OriginalIFFFlags & IFFFlags.Hide) != 0)
-            _shuttleSystem.AddIFFFlag(iffVisibilityGridUid, IFFFlags.Hide);
+        var gridUid = consoleTransform.GridUid.Value;
+        // Log.Debug("TryGrantGuestAccess: Console {0} is on grid {1}", console, gridUid);
 
-        if ((lockComp.OriginalIFFFlags & IFFFlags.HideLabel) != 0)
-            _shuttleSystem.AddIFFFlag(iffVisibilityGridUid, IFFFlags.HideLabel);
+        // Check if this is a ship with a deed
+        if (!TryComp<ShuttleDeedComponent>(gridUid, out var shipDeed))
+        {
+            // Log.Debug("TryGrantGuestAccess: Grid {0} has no ShuttleDeedComponent", gridUid);
+            return;
+        }
+
+        // Log.Debug("TryGrantGuestAccess: Grid {0} has ShuttleDeedComponent for shuttle {1}", gridUid, shipDeed.ShuttleUid);
+
+        // Check if the user is a cyborg
+        if (TryComp<BorgChassisComponent>(user, out _))
+        {
+            // Handle cyborg guest access
+            TryGrantCyborgGuestAccess(console, user, gridUid);
+            return;
+        }
+
+        // Find all accessible ID cards for the user
+        var idCards = FindAccessibleIdCards(user);
+        // Log.Debug("TryGrantGuestAccess: User {0} has {1} accessible ID cards: {2}", user, idCards.Count, string.Join(", ", idCards));
+
+        if (idCards.Count == 0)
+        {
+            // Log.Debug("TryGrantGuestAccess: User {0} has no accessible ID cards", user);
+            Popup.PopupEntity(Loc.GetString("shuttle-console-no-id-card"), console, user);
+            return;
+        }
+
+        // Check if any ID card already has deed access (shouldn't happen, but safety check)
+        foreach (var cardUid in idCards)
+        {
+            if (TryComp<ShuttleDeedComponent>(cardUid, out var cardDeed) &&
+                cardDeed.ShuttleUid == shipDeed.ShuttleUid)
+            {
+                // Log.Debug("TryGrantGuestAccess: User {0} already has deed access via card {1}", user, cardUid);
+                return; // User already has deed access
+            }
+        }
+
+        // Ensure the ship has a guest access component
+        var guestAccess = EnsureComp<ShipGuestAccessComponent>(gridUid);
+        // Log.Debug("TryGrantGuestAccess: Ensured ShipGuestAccessComponent on grid {0}", gridUid);
+
+        // Check if any of the user's ID cards already have guest access
+        var alreadyHasAccess = idCards.Any(cardUid => guestAccess.GuestIdCards.Contains(cardUid));
+        if (alreadyHasAccess)
+        {
+            // Log.Debug("TryGrantGuestAccess: User {0} already has guest access", user);
+            Popup.PopupEntity(Loc.GetString("shuttle-console-guest-access-already-granted"), console, user);
+            return;
+        }
+
+        // Grant guest access to all of the user's ID cards
+        foreach (var cardUid in idCards)
+        {
+            guestAccess.GuestIdCards.Add(cardUid);
+            // Log.Debug("TryGrantGuestAccess: Granted guest access to ID card {0}", cardUid);
+        }
+        Dirty(gridUid, guestAccess);
+
+        // Log.Debug("TryGrantGuestAccess: Successfully granted guest access to user {0} on grid {1}", user, gridUid);
+
+        // Play sound and show popup
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/id_swipe.ogg"), console);
+        Popup.PopupEntity(Loc.GetString("shuttle-console-guest-access-granted"), console, user);
+    }
+
+    /// <summary>
+    /// Grants guest access to a cyborg.
+    /// </summary>
+    private void TryGrantCyborgGuestAccess(EntityUid console, EntityUid cyborg, EntityUid gridUid)
+    {
+        // Log.Debug("TryGrantCyborgGuestAccess: Cyborg {0} attempting to get guest access via console {1} on grid {2}", cyborg, console, gridUid);
+
+        // Ensure the ship has a guest access component
+        var guestAccess = EnsureComp<ShipGuestAccessComponent>(gridUid);
+        // Log.Debug("TryGrantCyborgGuestAccess: Ensured ShipGuestAccessComponent on grid {0}", gridUid);
+
+        // Check if the cyborg already has guest access
+        if (guestAccess.GuestCyborgs.Contains(cyborg))
+        {
+            // Log.Debug("TryGrantCyborgGuestAccess: Cyborg {0} already has guest access", cyborg);
+            Popup.PopupEntity(Loc.GetString("shuttle-console-guest-access-already-granted"), console, cyborg);
+            return;
+        }
+
+        // Grant guest access to the cyborg
+        guestAccess.GuestCyborgs.Add(cyborg);
+        Dirty(gridUid, guestAccess);
+
+        // Log.Debug("TryGrantCyborgGuestAccess: Successfully granted guest access to cyborg {0} on grid {1}", cyborg, gridUid);
+
+        // Play sound and show popup
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/id_swipe.ogg"), console);
+        Popup.PopupEntity(Loc.GetString("shuttle-console-guest-access-granted"), console, cyborg);
+    }
+
+    /// <summary>
+    /// Checks if a user has deed access to the ship this console is on.
+    /// </summary>
+    private bool HasDeedAccess(EntityUid console, EntityUid user, ShuttleConsoleLockComponent lockComp)
+    {
+        // Get the grid the console is on
+        var consoleTransform = Transform(console);
+        if (consoleTransform.GridUid == null)
+            return false;
+
+        var gridUid = consoleTransform.GridUid.Value;
+
+        // Check if this is a ship with a deed
+        if (!TryComp<ShuttleDeedComponent>(gridUid, out var shipDeed))
+            return false;
+
+        // Find all accessible ID cards for the user
+        var idCards = FindAccessibleIdCards(user);
+
+        // Check if any ID card has deed access for this ship
+        foreach (var cardUid in idCards)
+        {
+            if (TryComp<ShuttleDeedComponent>(cardUid, out var cardDeed) &&
+                cardDeed.ShuttleUid == shipDeed.ShuttleUid)
+            {
+                return true; // User has deed access
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Resets guest access for the ship.
+    /// </summary>
+    private void TryResetGuestAccess(EntityUid console, EntityUid user, ShuttleConsoleLockComponent lockComp)
+    {
+        // Get the grid the console is on
+        var consoleTransform = Transform(console);
+        if (consoleTransform.GridUid == null)
+            return;
+
+        var gridUid = consoleTransform.GridUid.Value;
+
+        // Check if this is a ship with a deed
+        if (!TryComp<ShuttleDeedComponent>(gridUid, out var shipDeed))
+            return;
+
+        // Verify user has deed access
+        if (!HasDeedAccess(console, user, lockComp))
+        {
+            Popup.PopupEntity(Loc.GetString("shuttle-console-reset-guest-access-denied"), console, user);
+            return;
+        }
+
+        // Check if there's a guest access component
+        if (!TryComp<ShipGuestAccessComponent>(gridUid, out var guestAccess))
+        {
+            Popup.PopupEntity(Loc.GetString("shuttle-console-no-guest-access"), console, user);
+            return;
+        }
+
+        // Check if there are any guest cards or cyborgs to reset
+        var totalGuests = guestAccess.GuestIdCards.Count + guestAccess.GuestCyborgs.Count;
+        if (totalGuests == 0)
+        {
+            Popup.PopupEntity(Loc.GetString("shuttle-console-no-guest-access"), console, user);
+            return;
+        }
+
+        // Reset guest access
+        guestAccess.GuestIdCards.Clear();
+        guestAccess.GuestCyborgs.Clear();
+        Dirty(gridUid, guestAccess);
+
+        // Play sound and show popup
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/id_swipe.ogg"), console);
+        Popup.PopupEntity(Loc.GetString("shuttle-console-guest-access-reset", ("count", totalGuests)), console, user);
+    }
+
+    /// <summary>
+    /// Checks if ship access is currently enabled on the grid
+    /// </summary>
+    private bool IsShipAccessEnabled(EntityUid consoleUid)
+    {
+        // Get the grid the console is on
+        var consoleTransform = Transform(consoleUid);
+        if (consoleTransform.GridUid == null)
+            return false;
+
+        var gridUid = consoleTransform.GridUid.Value;
+
+        // Get all entities on the grid using transform children
+        var gridTransform = Transform(gridUid);
+        var childEnumerator = gridTransform.ChildEnumerator;
+
+        while (childEnumerator.MoveNext(out var child))
+        {
+            if (TryComp<ShipAccessReaderComponent>(child, out var accessReader) && accessReader.Enabled)
+                return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Toggles ship access for all ship access readers on the grid
+    /// </summary>
+    private void ToggleShipAccess(EntityUid consoleUid, bool enabled)
+    {
+        // Get the grid the console is on
+        var consoleTransform = Transform(consoleUid);
+        if (consoleTransform.GridUid == null)
+            return;
+
+        var gridUid = consoleTransform.GridUid.Value;
+
+        // Get all entities on the grid using transform children
+        var gridTransform = Transform(gridUid);
+        var childEnumerator = gridTransform.ChildEnumerator;
+
+        while (childEnumerator.MoveNext(out var child))
+        {
+            if (TryComp<ShipAccessReaderComponent>(child, out var accessReader))
+            {
+                accessReader.Enabled = enabled;
+                Dirty(child, accessReader);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Attempts to toggle ship access for the grid
+    /// </summary>
+    private void TryToggleShipAccess(EntityUid consoleUid, EntityUid user, ShuttleConsoleLockComponent component, bool enable)
+    {
+        // Only allow deed holders to toggle ship access
+        if (!HasDeedAccess(consoleUid, user, component))
+        {
+            Popup.PopupEntity(Loc.GetString("shuttle-console-access-denied"), consoleUid, user);
+            return;
+        }
+
+        // Toggle ship access
+        ToggleShipAccess(consoleUid, enable);
+
+        // Play sound and show popup
+        _audio.PlayPvs(new SoundPathSpecifier("/Audio/Machines/id_swipe.ogg"), consoleUid);
+        var message = enable
+            ? Loc.GetString("shuttle-console-ship-access-enabled")
+            : Loc.GetString("shuttle-console-ship-access-disabled");
+        Popup.PopupEntity(message, consoleUid, user);
     }
 }
