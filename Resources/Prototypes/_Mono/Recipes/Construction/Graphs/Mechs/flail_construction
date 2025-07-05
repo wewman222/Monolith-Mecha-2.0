@@ -164,7 +164,7 @@
       - tool: Welding
         doAfter: 1
 
-  - node: broadsword
+  - node: flail
     actions:
     - !type:BuildMech
-      mechPrototype: AFInterceptor
+      mechPrototype: AFFlail

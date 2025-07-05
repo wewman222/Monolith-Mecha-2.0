@@ -36,7 +36,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_carbine
   - type: Gun
     ProjectileSpeed: 150
     fireRate: 10
@@ -65,7 +65,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_scatter
   - type: Gun
     ProjectileSpeed: 150
     fireRate: 2
@@ -92,7 +92,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_mime
   - type: Gun
     ProjectileSpeed: 200
     fireRate: 2
@@ -118,7 +118,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_pulse
   - type: Gun
     ProjectileSpeed: 300
     fireRate: 1
@@ -144,7 +144,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_missilerack_six
   - type: Gun
     ProjectileSpeed: 10
     fireRate: 1
@@ -171,7 +171,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_missilerack
   - type: Gun
     fireRate: 0.1
     selectedMode: SemiAuto
@@ -196,7 +196,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_pulse
   - type: Gun
     ProjectileSpeed: 150
     minAngle: 0
@@ -227,7 +227,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_ion
   - type: Gun
     ProjectileSpeed: 60
     minAngle: 0
@@ -256,7 +256,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_tesla
   - type: Gun
     ProjectileSpeed: 20
     fireRate: 0.1
@@ -282,7 +282,7 @@
   components:
   - type: Sprite
     sprite: Objects/Specific/Mech/mecha_equipment.rsi
-    state: mecha_uac2
+    state: mecha_tesla
   - type: Gun
     minAngle: 0
     maxAngle: 120

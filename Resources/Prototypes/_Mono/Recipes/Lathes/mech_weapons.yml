@@ -72,3 +72,19 @@
   materials:
     Steel: 1000
     Plastic: 200
+
+- type: latheRecipe
+  id: EWACMechaFlares
+  result: EWACMechaFlares
+  completetime: 10
+  materials:
+    Steel: 1000
+    Plastic: 200
+
+- type: latheRecipe
+  id: EWACMechaJammer
+  result: EWACMechaJammer
+  completetime: 10
+  materials:
+    Steel: 1000
+    Plastic: 200

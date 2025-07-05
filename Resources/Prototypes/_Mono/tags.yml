@@ -187,6 +187,21 @@
   id: Broadsword
 
 - type: Tag
+  id: BroadswordHead
+
+- type: Tag
+  id: BroadswordLArm
+
+- type: Tag
+  id: BroadswordLLeg
+
+- type: Tag
+  id: BroadswordRArm
+
+- type: Tag
+  id: BroadswordRLeg
+
+- type: Tag
   id: Halberd
 
 - type: Tag
