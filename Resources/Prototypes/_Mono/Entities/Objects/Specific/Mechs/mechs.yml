@@ -341,7 +341,7 @@
   - type: MovementSpeedModifier
     baseWalkSpeed: 0.1
     baseSprintSpeed: 1
-    weightlessModifier: 30
+    weightlessModifier: 25
   - type: RadarBlip
     radarColor: "#CF0E0E"
     scale: 4
@@ -502,7 +502,7 @@
   - type: MovementSpeedModifier
     baseWalkSpeed: 0.1
     baseSprintSpeed: 1
-    weightlessModifier: 25
+    weightlessModifier: 30
   - type: RadarBlip
     radarColor: "#CF0E0E"
     scale: 4

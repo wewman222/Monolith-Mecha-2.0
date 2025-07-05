@@ -94,7 +94,7 @@
     sprite: _Mono/Objects/Specific/Mech/tgmc_mecha_weapons.rsi
     state: sniper64x32
   - type: Gun
-    ProjectileSpeed: 200
+    ProjectileSpeed: 250
     fireRate: 2
     selectedMode: FullAuto
     availableModes:
@@ -120,7 +120,7 @@
     sprite: _Mono/Objects/Specific/Mech/tgmc_mecha_weapons.rsi
     state: laserrifle64x32
   - type: Gun
-    ProjectileSpeed: 300
+    ProjectileSpeed: 350
     fireRate: 1
     selectedMode: SemiAuto
     availableModes:
@@ -198,7 +198,7 @@
     sprite: _Mono/Objects/Specific/Mech/tgmc_mecha_weapons.rsi
     state: heavycannon64x32
   - type: Gun
-    ProjectileSpeed: 150
+    ProjectileSpeed: 250
     minAngle: 0
     maxAngle: 30
     fireRate: 3
@@ -229,7 +229,7 @@
     sprite: _Mono/Objects/Specific/Mech/tgmc_mecha_weapons.rsi
     state: flamer64x32
   - type: Gun
-    ProjectileSpeed: 60
+    ProjectileSpeed: 100
     minAngle: 0
     maxAngle: 40
     fireRate: 3
