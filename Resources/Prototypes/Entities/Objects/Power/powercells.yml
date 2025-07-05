@@ -344,6 +344,24 @@
     startingCharge: 2700
 
 - type: entity
+  id: PowerCageMech
+  parent: BasePowerCage
+  name: mech fuel cell
+  description: A rechargeable fuel cell for mechs.
+  components:
+  - type: Sprite
+    sprite: Objects/Power/power_cages.rsi
+    layers:
+    - map: [ "enum.PowerCellVisualLayers.Base" ]
+      state: high
+    - map: [ "enum.PowerCellVisualLayers.Unshaded" ]
+      state: o2
+      shader: unshaded
+  - type: Battery
+    maxCharge: 3000
+    startingCharge: 3000
+
+- type: entity
   id: PowerCageHigh
   parent: BasePowerCage
   name: high-capacity power cage
