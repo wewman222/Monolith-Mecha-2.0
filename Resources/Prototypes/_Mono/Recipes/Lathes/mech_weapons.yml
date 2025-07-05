@@ -29,16 +29,17 @@
   result: MediumMechDMR
   completetime: 10
   materials:
-    Steel: 1000
-    Plastic: 200
+    Steel: 2000
+    Plastic: 400
 
 - type: latheRecipe
   id: MediumMechCoilgun
   result: MediumMechCoilgun
   completetime: 10
   materials:
-    Steel: 1000
-    Plastic: 200
+    Steel: 2000
+    Plastic: 400
+    Glass: 1000
 
 - type: latheRecipe
   id: MediumMechTOW
@@ -54,15 +55,15 @@
   result: HeavyMechRPG
   completetime: 10
   materials:
-    Steel: 1000
-    Plastic: 200
+    Steel: 6000
+    Plastic: 400
 
 - type: latheRecipe
   id: HeavyMechCannon
   result: HeavyMechCannon
   completetime: 10
   materials:
-    Steel: 1000
+    Steel: 6000
     Plastic: 200
 
 - type: latheRecipe
@@ -70,7 +71,7 @@
   result: HeavyMechProjector
   completetime: 10
   materials:
-    Steel: 1000
+    Steel: 6000
     Plastic: 200
 
 - type: latheRecipe
@@ -78,13 +79,17 @@
   result: EWACMechaFlares
   completetime: 10
   materials:
-    Steel: 1000
+    Steel: 4000
     Plastic: 200
+    Gold: 5000
+    Silver: 3000
+
 
 - type: latheRecipe
   id: EWACMechaJammer
   result: EWACMechaJammer
   completetime: 10
   materials:
-    Steel: 1000
+    Steel: 3000
     Plastic: 200
+    Gold: 2000
