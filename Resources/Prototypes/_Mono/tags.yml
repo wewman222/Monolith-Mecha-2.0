@@ -179,6 +179,8 @@
 - type: Tag
   id: HeavyMechMount
 
+- type: Tag
+  id: EWARMechMount
 #Mech Tags
 
 - type: Tag
@@ -192,6 +194,12 @@
 
 - type: Tag
   id: Flail
+
+- type: Tag
+  id: Spyglass
+
+- type: Tag
+  id: Mace
 
 - type: Tag
   id: BroadswordCentralControlModule

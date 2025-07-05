@@ -397,3 +397,156 @@
   - type: Tag
     tags:
     - FlailRLeg
+
+- type: entity
+  parent: BaseFlailPart
+  id: SpyglassHarness
+  name: spyglass harness
+  description: The core of the ASF-59-E "Spyglass".
+  components:
+  - type: Appearance
+  - type: ItemMapper
+    mapLayers:
+      flail_head+o:
+        whitelist:
+          tags:
+          - FlailHead
+      flail_r_arm+o:
+        whitelist:
+          tags:
+          - FlailLArm
+      flail_l_arm+o:
+        whitelist:
+          tags:
+          - FlailRArm
+      flail_l_leg+o:
+        whitelist:
+          tags:
+          - FlailLLeg
+      flail_r_leg+o:
+        whitelist:
+          tags:
+          - FlailRLeg
+    sprite: _Mono/Objects/Specific/Mech/flail_construction.rsi
+  - type: ContainerContainer
+    containers:
+      mech-assembly-container: !type:Container
+  - type: MechAssembly
+    finishedPrototype: SpyglassChassis
+    requiredParts:
+      FlailHead: false
+      FlailLArm: false
+      FlailRArm: false
+      FlailLLeg: false
+      FlailRLeg: false
+  - type: Sprite
+    state: flail_harness+o
+    noRot: true
+
+- type: entity
+  parent: BaseFlailPart
+  id: MaceHarness
+  name: mace harness
+  description: The core of the ASF-59-B "Mace".
+  components:
+  - type: Appearance
+  - type: ItemMapper
+    mapLayers:
+      flail_head+o:
+        whitelist:
+          tags:
+          - FlailHead
+      flail_r_arm+o:
+        whitelist:
+          tags:
+          - FlailLArm
+      flail_l_arm+o:
+        whitelist:
+          tags:
+          - FlailRArm
+      flail_l_leg+o:
+        whitelist:
+          tags:
+          - FlailLLeg
+      flail_r_leg+o:
+        whitelist:
+          tags:
+          - FlailRLeg
+    sprite: _Mono/Objects/Specific/Mech/flail_construction.rsi
+  - type: ContainerContainer
+    containers:
+      mech-assembly-container: !type:Container
+  - type: MechAssembly
+    finishedPrototype: MaceChassis
+    requiredParts:
+      FlailHead: false
+      FlailLArm: false
+      FlailRArm: false
+      FlailLLeg: false
+      FlailRLeg: false
+  - type: Sprite
+    state: flail_harness+o
+    noRot: true
+
+
+
+
+- type: entity
+  id: FlailChassis
+  parent: BaseFlailPart
+  name: flail chassis
+  description: An in-progress construction of the flail mech.
+  components:
+  - type: Appearance
+  - type: ContainerContainer
+    containers:
+      battery-container: !type:Container
+  - type: MechAssemblyVisuals
+    statePrefix: flail
+  - type: Sprite
+    noRot: true
+    state: flail0
+  - type: Construction
+    graph: Flail
+    node: start
+    defaultTarget: flail
+
+- type: entity
+  id: SpyglassChassis
+  parent: BaseFlailPart
+  name: spyglass chassis
+  description: An in-progress construction of the spyglass mech.
+  components:
+  - type: Appearance
+  - type: ContainerContainer
+    containers:
+      battery-container: !type:Container
+  - type: MechAssemblyVisuals
+    statePrefix: flail
+  - type: Sprite
+    noRot: true
+    state: flail0
+  - type: Construction
+    graph: Spyglass
+    node: start
+    defaultTarget: flail
+
+- type: entity
+  id: MaceChassis
+  parent: BaseFlailPart
+  name: mace chassis
+  description: An in-progress construction of the mace mech.
+  components:
+  - type: Appearance
+  - type: ContainerContainer
+    containers:
+      battery-container: !type:Container
+  - type: MechAssemblyVisuals
+    statePrefix: flail
+  - type: Sprite
+    noRot: true
+    state: flail0
+  - type: Construction
+    graph: Mace
+    node: start
+    defaultTarget: flail

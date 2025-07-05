@@ -6,18 +6,18 @@
   - type: Projectile
     damage:
       types:
-        Structural: 950
-        Blunt: 70
-        Piercing: 200
+        Structural: 3000
+        Blunt: 5000
+        Piercing: 3000
   - type: Sprite
     sprite: _Mono/Objects/SpaceArtillery/630_armorpiercing_shell_casing.rsi
     layers:
     - state: base-projectile
   - type: Explosive
-    totalIntensity: 50 # totalIntensity goes first, please.
-    intensitySlope: 4
-    maxIntensity: 8
-    maxTileBreak: 3
+    explosionType: HardBomb
+    totalIntensity: 400 # totalIntensity goes first, please.
+    intensitySlope: 20
+    maxIntensity: 15
   - type: TimedDespawn
     lifetime: 10
   - type: PointLight

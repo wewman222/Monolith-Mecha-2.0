@@ -25,3 +25,7 @@
     lifetime: 1.5
   - type: PointLight
     color: "#19AFFF"
+  - type: EmpOnTrigger
+    range: 3
+    energyConsumption: 100000
+    disableDuration: 5

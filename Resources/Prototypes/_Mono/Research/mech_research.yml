@@ -20,6 +20,8 @@
   - LightMechaAutocannon
   - LightMechaSMG
   - LightMechaShotgun
+  - PowerCageRecharger
+  - PowerCageMech
   technologyPrerequisites:
   - Gygax
 
@@ -61,7 +63,7 @@
     sprite: _Mono/Objects/Specific/Mech/mechaS4.rsi
     state: flail
   discipline: Arsenal
-  tier: 2
+  tier: 3
   cost: 12000
   recipeUnlocks:
   - FlailHarness
@@ -78,3 +80,33 @@
   - HeavyMechProjector
   technologyPrerequisites:
   - Broadsword
+
+- type: technology
+  id: Spyglass
+  name: research-technology-spyglass
+  icon:
+    sprite: _Mono/Objects/Specific/Mech/mechaS4.rsi
+    state: flail
+  discipline: Arsenal
+  tier: 3
+  cost: 13000
+  recipeUnlocks:
+  - SpyglassHarness
+  - EWACMechaFlares
+  - EWACMechaJammer
+  technologyPrerequisites:
+  - Flail
+
+- type: technology
+  id: Mace
+  name: research-technology-mace
+  icon:
+    sprite: _Mono/Objects/Specific/Mech/mechaS4.rsi
+    state: flail
+  discipline: Arsenal
+  tier: 3
+  cost: 9000
+  recipeUnlocks:
+  - MaceHarness
+  technologyPrerequisites:
+  - Flail

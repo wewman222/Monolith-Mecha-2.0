@@ -31,3 +31,28 @@
     - HeavyMechMount
   - type: StaticPrice
     price: 500
+
+- type: entity
+  id: LightMultiroleMountEquipment
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Tag
+    tags:
+    - LightMechMount
+    - MediumMechMount
+  - type: StaticPrice
+    price: 500
+
+- type: entity
+  id: EWARMechMountEquipment
+  abstract: true
+  categories: [ HideSpawnMenu ]
+  components:
+  - type: Tag
+    tags:
+    - EWARMechMount
+    - LightMechMount
+  - type: StaticPrice
+    price: 500
+

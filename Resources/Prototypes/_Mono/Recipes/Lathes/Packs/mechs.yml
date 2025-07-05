@@ -105,3 +105,17 @@
   - HeavyMechRPG
   - HeavyMechCannon
   - HeavyMechProjector
+
+- type: latheRecipePack
+  id: SpaceMechaWeapons
+  recipes:
+  - LightMechaAutocannon
+  - LightMechaSMG
+  - LightMechaShotgun
+  - MediumMechDMR
+  - MediumMechCoilgun
+  - MediumMechTOW
+  - HeavyMechRPG
+  - HeavyMechCannon
+  - HeavyMechProjector
+  -
