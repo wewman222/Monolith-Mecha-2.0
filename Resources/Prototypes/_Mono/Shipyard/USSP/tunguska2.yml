@@ -24,7 +24,7 @@
   - AME
 
 - type: gameMap
-  id: Tunguska
+  id: TunguskaC
   mapName: 'Tunguska-C'
   mapPath: /Maps/_Mono/Shuttles/USSP/tunguska2.yml
   minPlayers: 0
